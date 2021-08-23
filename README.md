@@ -7,7 +7,7 @@ On utilise un système d'exploitation Linux : ubuntu server 20.04.2 LTS.
 
 Dans notre environement, les machines virtuelles sont hébergées avec hyper-V. Nous attribuons 2048Mo de RAM, 20Go d'espace disque et 2 CPU virtuels pour chaque VM. On ajoutera à chaque VM une carte réseau utilisant le même réseau que le reste de l'infrastructure.
 
-> Nous utilisons des systèmes invités Linux avec Hyper-V, pour réussir à installer l'OS correctement, il faut bien désactiver le "démarrage sécurisé" dans les options de chaque VM avant leur premier démarrage : ![](img/secure_boot.png)
+> Nous utilisons des systèmes invités Linux avec Hyper-V, pour réussir à installer l'OS correctement, il faut bien désactiver le "démarrage sécurisé" dans les options de chaque VM avant leur premier démarrage : ![](img/secure_boot.PNG)
 
 Nous créons 3 VM :
 - k8s-control
@@ -26,14 +26,14 @@ Au premier lancement, il nous est proposé plusieurs options, nous choisissons "
 Vous pouvez choisir la configuration de votre clavier dans l'écran suivant le choix de la langue.
 
 Nous commençons par modifier les paramètres réseau de la carte à partir du menu suivant.
-![](img/dhp4_off.png)
-![](img/ipv4_config.png)
+![](img/dhp4_off.PNG)
+![](img/ipv4_config.PNG)
 
 > Attention à bien donner une addresse ip différente pour chaque VM, on prendra les ip à partir de .150 ici, mais libre à vous de choisir votre propre plage.
 
 Le reste des options sera laissé par défaut, à l'exception de 2 menus :
 - On active le serveur open-SSH (facultatif, permet par la suite de se connecter en ssh au serveur plutôt que de passer par l'interface Hyper-V).
-- Le menu "Profile setup", dont la configuration sera comme suit (attention à bien adapter le nom de la machine) : ![](img/profile_setup.png)
+- Le menu "Profile setup", dont la configuration sera comme suit (attention à bien adapter le nom de la machine) : ![](img/profile_setup.PNG)
   Vous êtes libre d'utiliser un nom d'utilisateur et un mot de passe de votre choix. Ici "ubuntu" n'est qu'un exemple. Ce compte correspond au compte administrateur par défaut de la machine.
 
 Une fois l'installation completée et les mises à jour de sécurité installées, il ne vous reste qu'à redémarrer chaque machine (pensez à éjecter le média d'installation).
