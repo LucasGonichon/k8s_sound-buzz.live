@@ -12,6 +12,10 @@ spec:
       labels:
         app: subsonic
     spec:
+      volumes:
+      - name: nfs
+        persistentVolumeClaim:
+          claimName: subsonic-pvc
       containers:
       - name: subsonic
         image: hurricane/subsonic
@@ -20,13 +24,26 @@ spec:
            value: "80"
         ports:
         - containerPort: 80
+        volumeMounts:
+        - name: nfs
+          mountPath: /subsonic
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: subsonic-pvc
+spec:
+  storageClassName: nfs-client
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 500Mi
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: subsonic-svc
-  labels:
-    run: subsonic-svc
 spec:
   ports:
   - port: 80

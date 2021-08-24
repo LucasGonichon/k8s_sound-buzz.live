@@ -319,7 +319,7 @@ helm install traefik traefik/traefik --values traefik-values.yaml -n traefik --c
 
 > En faisant ```kubectl get all -n traefik```, on remarque que le service traefik utilise bien l'ip donnée par notre Load-Balancer MetalLB !
 
-> Bonus : [Exposing Traefik Dashboard](https://doc.traefik.io/traefik/getting-started/install-traefik/#exposing-the-traefik-dashboard).
+> Bonus : [Exposing Traefik Dashboard](https://doc.traefik.io/traefik/getting-started/install-traefik/#exposing-the-traefik-dashboard)  (fichier personnalisé : [traefik-dashboard.yaml](yaml/traefik-dashboard.yaml)).
 
 ## Déploiement de l'application
 On est maintenant prêts à déployer notre application. Nous allons utiliser l'application subsonic en utilisant l'image suivante : [hurricane/subsonic](https://hub.docker.com/r/hurricane/subsonic).
@@ -333,8 +333,14 @@ kubectl apply -f subsonic.yaml
 
 On peut maintenant accéder à l'app subsonic depuis **app.subsonic.live**.
 
-> Le contrôleur ingress prend en charge les cerificats TLS, et côté backend, les données de l'app sont persistantes sur des volumes *nfs* auto-provisionnés.
+> Côté backend, les données de l'app sont persistantes sur des volumes *nfs* auto-provisionnés.
+
+## Utilisation de Let's Encrypt pour générer des certificats TLS
+Afin d'utiliser le protocole https pour accéder à notre application, il nous faut des certificats TLS pour notre domaine.
+
+> EN COURS DE REDACTION
 
 ## Mise à l'échelle automatique
 Il ne reste plus qu'à mettre en place l'autoscaling de l'application en fonction de ses besoins en ressources face au nombre de requêtes.
 
+> EN COURS DE REDACTION
