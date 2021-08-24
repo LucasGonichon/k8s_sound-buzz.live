@@ -157,7 +157,7 @@ kubectl get nodes -o wide
 ## Installation d'un Load-Balancer
 Nous allons installer un Load-Balancer au cluster afin de répartir la charge sur les différents nodes. Nous utiliseront MetalLB.
 
-> Nous suivons les instructions du site officiel de la solution : [MetalLB Installation](https://metallb.universe.tf/installation/#installation-by-manifest), [MetalLB Configuration](https://metallb.universe.tf/configuration/).
+> Nous suivons les instructions du site officiel de la solution : [MetalLB Installation](https://metallb.universe.tf/installation/#installation-by-manifest), [MetalLB Configuration](https://metallb.universe.tf/configuration/#layer-2-configuration).
 
 Pour installer :
 ```shell
@@ -165,10 +165,20 @@ kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.10.2/manif
 kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.10.2/manifests/metallb.yaml
 ```
 
-Pour configurer (fichier : [metallb.yaml](yaml/metallb.yaml)) :
+Pour configurer (fichier : [metallb.yaml](yaml/metallb-conf.yaml)) :
 ```shell
-kubectl create -f metallb.yaml
+kubectl create -f metallb-conf.yaml
 ```
 
 On peut tester la configuration comme suit :
 
+```shell
+kubectl create deploy nginx --image nginx
+kubectl expose deploy nginx --port 80 --type LoadBalancer
+kubectl get svc,pod
+```
+
+Le champ ```EXTERNAL-IP``` du service **nginx** doit correspondre à une addresse de la plage référencée dans [metallb.yaml](yaml/metallb-conf.yaml), et on doit pouvoir afficher une page html depuis le pod nginx via le service en faisant :
+```shell
+curl 10.244.0.240
+```
