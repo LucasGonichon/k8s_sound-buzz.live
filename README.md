@@ -182,3 +182,90 @@ Le champ ```EXTERNAL-IP``` du service **nginx** doit correspondre à une address
 ```shell
 curl 10.244.0.240
 ```
+
+Pour supprimer les ressources du test :
+```shell
+kubectl delete svc nginx
+kubectl delete deploy nginx
+```
+
+## Installation d'un fournisseur de stockage dynamique (avec NFS)
+Un provisionement dynamique nous évite d'administrer manuellement les tailles de volumes au sein du Cluster. Ces espaces de stockages seront situés sur un serveur NFS distant, et les volumes persistants k8s seront de taille dynamique en fonction de la demande (ajout de musique, de certificats SSL, etc).
+
+### Serveur NFS
+> Les actions usivantes sont à effectuer sur le serveur NFS distant, pas sur les nodes ni le controler du cluster k8s. Ici j'utilise un serveur linux CentOS 7, vous devrez adapter les commandes à votre distribution.
+
+On commence par créer une règle Pare-Feu pour autoriser le service nfs :
+```shell
+sudo firewall-cmd --permanent --add-service=nfs
+sudo firewall-cmd --reload
+sudo firewall-cmd --list-all
+```
+**nfs** doit apparaître dans les services.
+
+On installe les outils **nfs** :
+```shell
+sudo yum install nfs-utils
+```
+
+On renseigne le domaine dans ```/etc/idmapd.conf``` :
+```conf
+[General]
+#Verbosity = 0
+# The following should be set to the local NFSv4 domain name
+# The default is the host's DNS domain name.
+Domain = sound-buzz.live
+(...)
+```
+
+On créé notre dossier à partager :
+```shell
+sudo mkdir /srv/nfs/kubedata -p
+sudo chown nobody: /srv/nfs/kubedata
+```
+
+On créé notre partage nfs dans le fichier ```/etc/exports``` :
+```conf
+/srv/nfs/kubedata *(rw,sync,no_subtree_check,no_root_squash,no_all_squash,insecure)
+```
+
+On peut maintenant démarrer et activer le service nfs :
+```shell
+sudo systemctl enable --now nfs-server rcpbind
+sudo exportfs -rav
+```
+
+### Clients NFS sur le cluster
+Pour chaque node sur le cluster (et le control) :
+```shell
+sudo apt install nfs-common -y
+```
+
+> Pour tester que vous pouvez bien monter votre partage nfs sur chaque client :
+> ```shell
+> sudo mount -t nfs 172.16.0.8:/srv/nfs/kubedata /mnt
+> ```
+> 
+> Vous pouvez ajouter/retirer des fichiers depuis le serveur nfs ou un autre client et observer les mêmes modifications depuis le client :
+> ```shell
+> ls -l /mnt
+> ```
+> 
+> Vous pouvez aussi utiliser :
+> ```shell
+> mount | grep /mnt
+> ```
+> 
+> Une fois que vous avez fini de vérifier, démontez le partage :
+> ```shell
+> sudo umount /mnt
+> ```
+
+### Déploiement du NFS-Provisioner
+On va maintenant pouvoir déployer notre fournisseur sur le cluster (via *k8s-control*).
+
+On applique la configuration [nfs-provision-rbac.yaml](yaml/nfs-provision-rbac.yaml) :
+```shell
+kubectl create -f nfs-provision-rbac.yaml
+```
+
