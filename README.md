@@ -154,3 +154,21 @@ On peut avoir un aperçu du cluster avec la commande :
 ```shell
 kubectl get nodes -o wide
 ```
+## Installation d'un Load-Balancer
+Nous allons installer un Load-Balancer au cluster afin de répartir la charge sur les différents nodes. Nous utiliseront MetalLB.
+
+> Nous suivons les instructions du site officiel de la solution : [MetalLB Installation](https://metallb.universe.tf/installation/#installation-by-manifest), [MetalLB Configuration](https://metallb.universe.tf/configuration/).
+
+Pour installer :
+```shell
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.10.2/manifests/namespace.yaml
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.10.2/manifests/metallb.yaml
+```
+
+Pour configurer (fichier : [metallb.yaml](yaml/metallb.yaml)) :
+```shell
+kubectl create -f metallb.yaml
+```
+
+On peut tester la configuration comme suit :
+
