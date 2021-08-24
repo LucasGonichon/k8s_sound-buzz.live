@@ -264,18 +264,23 @@ sudo apt install nfs-common -y
 ### Déploiement du NFS-Provisioner
 On va maintenant pouvoir déployer notre fournisseur sur le cluster (via *k8s-control*).
 
-On applique la configuration [nfs-provision-rbac.yaml](yaml/nfs-provision-rbac.yaml) : (création d'un compte de service)
+> On se base sur ce projet : [nfs-subdir-external-provisioner](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner/tree/v4.0.2).
+
+Il existe plusieurs méthodes d'installation, nous allons utiliser **Helm**.
+
+On commence par installer helm :
 ```shell
-kubectl create -f nfs-provision-rbac.yaml
+sudo snap install helm --classic
 ```
 
-On applique la configuration [nfs-provision-class.yaml](yaml/nfs-provision-class.yaml) : (création d'un modèle de classe de stockage)
+On installe ensuite le **repository** :
 ```shell
-kubectl create -f nfs-provision-class.yaml
+helm repo add nfs-subdir-external-provisioner https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/
+```
+Puis on installe le projet sur notre cluster :
+```shell
+helm install nfs-subdir-external-provisioner nfs-subdir-external-provisioner/nfs-subdir-external-provisioner --set nfs.server=172.16.0.8 --set nfs.path=/srv/nfs/kubedata
 ```
 
-On applique la configuration [nfs-provision-deploy.yaml](yaml/nfs-provision-deploy.yaml) : (création d'un déploiement)
-```shell
-kubectl create -f nfs-provision-deploy.yaml
-```
+On peut utiliser ```helm list``` pour visualiser notre installation.
 
