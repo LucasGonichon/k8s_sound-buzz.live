@@ -165,7 +165,7 @@ kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.10.2/manif
 kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.10.2/manifests/metallb.yaml
 ```
 
-Pour configurer (fichier : [metallb.yaml](yaml/metallb-conf.yaml)) :
+Pour configurer (fichier : [metallb-conf.yaml](yaml/metallb-conf.yaml)) :
 ```shell
 kubectl create -f metallb-conf.yaml
 ```
@@ -178,9 +178,9 @@ kubectl expose deploy nginx --port 80 --type LoadBalancer
 kubectl get svc,pod
 ```
 
-Le champ ```EXTERNAL-IP``` du service **nginx** doit correspondre à une addresse de la plage référencée dans [metallb.yaml](yaml/metallb-conf.yaml), et on doit pouvoir afficher une page html depuis le pod nginx via le service en faisant :
+Le champ ```EXTERNAL-IP``` du service **nginx** doit correspondre à une addresse de la plage référencée dans [metallb-conf.yaml](yaml/metallb-conf.yaml), et on doit pouvoir afficher une page html depuis le pod nginx via le service en faisant :
 ```shell
-curl 10.244.0.240
+curl 172.16.0.200
 ```
 
 Pour supprimer les ressources du test :
@@ -190,7 +190,7 @@ kubectl delete deploy nginx
 ```
 
 ## Installation d'un fournisseur de stockage dynamique (avec NFS)
-Un provisionement dynamique nous évite d'administrer manuellement les tailles de volumes au sein du Cluster. Ces espaces de stockages seront situés sur un serveur NFS distant, et les volumes persistants k8s seront de taille dynamique en fonction de la demande (ajout de musique, de certificats SSL, etc).
+Un provisionement dynamique nous évite d'administrer manuellement les tailles de volumes au sein du Cluster. Ces espaces de stockages seront situés sur un serveur NFS distant, et les volumes persistants k8s seront de taille dynamique en fonction de la demande (ajout de musique, de certificats TLS, etc).
 
 ### Serveur NFS
 > Les actions usivantes sont à effectuer sur le serveur NFS distant, pas sur les nodes ni le controler du cluster k8s. Ici j'utilise un serveur linux CentOS 7, vous devrez adapter les commandes à votre distribution.
@@ -309,7 +309,7 @@ persistence:
   # subPath: "" # only mount a subpath of the Volume into the pod
 ```
 
-Cela permettra de stocker nos certificats SSL de façon persistante, sans les perdre à chaque nouvelle instance de Traefik. Conservez ce fichier, nous le modifieront à nouveau par la suite (pour l'autoscaling notamment).
+Cela permettra de stocker nos certificats TLS de façon persistante, sans les perdre à chaque nouvelle instance de Traefik. Conservez ce fichier, nous le modifieront à nouveau par la suite (pour l'autoscaling notamment).
 
 pour installer Traefik avec notre configuration personnalisée :
 ```shell
@@ -318,11 +318,22 @@ helm install traefik traefik/traefik --values traefik-values.yaml -n traefik --c
 
 > En faisant ```kubectl get all -n traefik```, on remarque que le service traefik utilise bien l'ip donnée par notre Load-Balancer MetalLB !
 
+> Bonus : [Exposing Traefik Dashboard](https://doc.traefik.io/traefik/getting-started/install-traefik/#exposing-the-traefik-dashboard).
+
 ## Déploiement de l'application
 On est maintenant prêts à déployer notre application. Nous allons utiliser l'application subsonic en utilisant l'image suivante : [hurricane/subsonic](https://hub.docker.com/r/hurricane/subsonic).
+
+On commence par créer un enregistrement DNS sur l'ip publique de notre load-balancer (enregistrement A vers ```172.16.0.200```)
 
 Nous pouvons simplement appliquer la configuration [subsonic.yaml](yaml/subsonic.yaml) :
 ```shell
 kubectl apply -f subsonic.yaml
 ```
+
+On peut maintenant accéder à l'app subsonic depuis **app.subsonic.live**.
+
+> Le contrôleur ingress prend en charge les cerificats TLS, et côté backend, les données de l'app sont persistantes sur des volumes *nfs* auto-provisionnés.
+
+## Mise à l'échelle automatique
+Il ne reste plus qu'à mettre en place l'autoscaling de l'application en fonction de ses besoins en ressources face au nombre de requêtes.
 
