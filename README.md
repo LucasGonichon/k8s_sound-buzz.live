@@ -282,5 +282,47 @@ Puis on installe le projet sur notre cluster :
 helm install nfs-subdir-external-provisioner nfs-subdir-external-provisioner/nfs-subdir-external-provisioner --set nfs.server=172.16.0.8 --set nfs.path=/srv/nfs/kubedata
 ```
 
-On peut utiliser ```helm list``` pour visualiser notre installation.
+On peut utiliser ```helm list``` pour visualiser notre installation, et ```kubectl get sc``` pour vérifier que notre classe de stockage a bien été créée.
+
+> Pour configurer cette installation et la personaliser à votre environement : [NFS Subdirectory External Provisioner Helm Chart](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner/blob/v4.0.2/charts/nfs-subdir-external-provisioner/README.md).
+
+## Installation d'un contrôleur Ingress
+> On va installer Traefik en tant que Ingress controler, en utilisant Helm : [traefik Install using the Helm chart](https://doc.traefik.io/traefik/getting-started/install-traefik/#use-the-helm-chart).
+
+Ajoutez le **repository** en suivant les instructions, puis éxecutez ces commandes :
+```shell
+helm show values traefik/traefik > traefik-values.yaml
+sudo nano traefik-values.yaml
+```
+
+Modifiez la partie **persistence** avec notre fournisseur nfs :
+```yaml
+persistence:
+  enabled: true
+  name: data
+#  existingClaim: ""
+  accessMode: ReadWriteOnce
+  size: 128Mi
+  storageClass: "nfs-client"
+  path: /data
+  annotations: {}
+  # subPath: "" # only mount a subpath of the Volume into the pod
+```
+
+Cela permettra de stocker nos certificats SSL de façon persistante, sans les perdre à chaque nouvelle instance de Traefik. Conservez ce fichier, nous le modifieront à nouveau par la suite (pour l'autoscaling notamment).
+
+pour installer Traefik avec notre configuration personnalisée :
+```shell
+helm install traefik traefik/traefik --values traefik-values.yaml -n traefik --create-namespace
+```
+
+> En faisant ```kubectl get all -n traefik```, on remarque que le service traefik utilise bien l'ip donnée par notre Load-Balancer MetalLB !
+
+## Déploiement de l'application
+On est maintenant prêts à déployer notre application. Nous allons utiliser l'application subsonic en utilisant l'image suivante : [hurricane/subsonic](https://hub.docker.com/r/hurricane/subsonic).
+
+Nous pouvons simplement appliquer la configuration [subsonic.yaml](yaml/subsonic.yaml) :
+```shell
+kubectl apply -f subsonic.yaml
+```
 
