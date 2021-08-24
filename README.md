@@ -264,8 +264,18 @@ sudo apt install nfs-common -y
 ### Déploiement du NFS-Provisioner
 On va maintenant pouvoir déployer notre fournisseur sur le cluster (via *k8s-control*).
 
-On applique la configuration [nfs-provision-rbac.yaml](yaml/nfs-provision-rbac.yaml) :
+On applique la configuration [nfs-provision-rbac.yaml](yaml/nfs-provision-rbac.yaml) : (création d'un compte de service)
 ```shell
 kubectl create -f nfs-provision-rbac.yaml
+```
+
+On applique la configuration [nfs-provision-class.yaml](yaml/nfs-provision-class.yaml) : (création d'un modèle de classe de stockage)
+```shell
+kubectl create -f nfs-provision-class.yaml
+```
+
+On applique la configuration [nfs-provision-deploy.yaml](yaml/nfs-provision-deploy.yaml) : (création d'un déploiement)
+```shell
+kubectl create -f nfs-provision-deploy.yaml
 ```
 
