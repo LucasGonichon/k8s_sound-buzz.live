@@ -1,5 +1,6 @@
-# Deploiement d'un cluster Kubernetes sur un hôte Hyper-V
-## Création des VM
+# Deploiement de l'application subsonic dans un cluster k8s hautement disponible avec auto-scaling et provisionement dynamique
+
+## Création des VM Hyper-V
 On commence par créer des machines virtuelles pour composer notre futur cluster k8s (k8s : Kubernetes).
 On utilise un système d'exploitation Linux : ubuntu server 20.04.2 LTS.
 
