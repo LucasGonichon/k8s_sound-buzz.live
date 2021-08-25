@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: subsonic
+spec:
+  replicas: 1
+  selector:
+   matchLabels:
+    app: subsonic
+  template:
+    metadata:
+      labels:
+        app: subsonic
+    spec:
+      containers:
+      - name: subsonic
+        image: hurricane/subsonic
+        env:
+        - name: HTTP_PORT
+          value: "80"
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: subsonic
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+  selector:
+    app: subsonic
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: subsonic-redirect
+spec:
+  redirectScheme:
+    scheme: https
+    permanent: true
+    port: "443"
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: subsonic-http
+  namespace: default
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`app.sound-buzz.live`)
+      kind: Rule
+      middlewares:
+        - name: subsonic-redirect      
+      services:
+        - name: subsonic
+          port: 80
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: subsonic-https
+  namespace: default
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`app.sound-buzz.live`)
+      kind: Rule
+      services:
+        - name: subsonic
+          port: 80
+  tls:
+    certResolver: pebble

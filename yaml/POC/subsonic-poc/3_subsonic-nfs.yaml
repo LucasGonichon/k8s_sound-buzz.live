@@ -12,21 +12,12 @@ spec:
       labels:
         app: subsonic
     spec:
-      volumes:
-      - name: subsonic
-        persistentVolumeClaim:
-          claimName: subsonic-pvc
-      - name: music
-        persistentVolumeClaim:
-          claimName: music-pvc
       containers:
       - name: subsonic
         image: hurricane/subsonic
         env:
-         - name: HTTP_PORT
-           value: "80"
-         - name: APP_UID
-           value: "65534"
+        - name: HTTP_PORT
+          value: "80"
         ports:
         - containerPort: 80
         volumeMounts:
@@ -34,11 +25,18 @@ spec:
           mountPath: /subsonic
         - name: music
           mountPath: /music
+      volumes:
+      - name: subsonic
+        persistentVolumeClaim:
+          claimName: subsonic
+      - name: music
+        persistentVolumeClaim:
+          claimName: music
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: subsonic-pvc
+  name: subsonic
 spec:
   storageClassName: nfs-client
   accessModes:
@@ -50,19 +48,19 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: music-pvc
+  name: music
 spec:
   storageClassName: nfs-client
   accessModes:
     - ReadWriteMany
   resources:
     requests:
-      storage: 50Gi
+      storage: 20Gi
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: subsonic-svc
+  name: subsonic
 spec:
   ports:
   - port: 80
@@ -71,15 +69,45 @@ spec:
     app: subsonic
 ---
 apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: subsonic-redirect
+spec:
+  redirectScheme:
+    scheme: https
+    permanent: true
+    port: "443"
+---
+apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
 metadata:
-  name: subsonic-ingress
+  name: subsonic-http
+  namespace: default
 spec:
   entryPoints:
     - web
   routes:
     - match: Host(`app.sound-buzz.live`)
       kind: Rule
+      middlewares:
+        - name: subsonic-redirect      
       services:
-        - name: subsonic-svc
+        - name: subsonic
           port: 80
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: subsonic-https
+  namespace: default
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`app.sound-buzz.live`)
+      kind: Rule
+      services:
+        - name: subsonic
+          port: 80
+  tls:
+    certResolver: pebble
