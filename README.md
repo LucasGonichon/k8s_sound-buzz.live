@@ -319,7 +319,7 @@ helm install traefik traefik/traefik --values traefik-values.yaml -n traefik --c
 
 > En faisant ```kubectl get all -n traefik```, on remarque que le service traefik utilise bien l'ip donnée par notre Load-Balancer MetalLB !
 
-> Bonus : [Exposing Traefik Dashboard](https://doc.traefik.io/traefik/getting-started/install-traefik/#exposing-the-traefik-dashboard)  (fichier personnalisé : [traefik-dashboard.yaml](yaml/traefik-dashboard.yaml)).
+> Bonus : [Exposing Traefik Dashboard](https://doc.traefik.io/traefik/getting-started/install-traefik/#exposing-the-traefik-dashboard)  (fichier personnalisé : [dashboards.yaml](yaml/dashboards.yaml)).
 
 ## Déploiement de l'application
 On est maintenant prêts à déployer notre application. Nous allons utiliser l'application subsonic en utilisant l'image suivante : [hurricane/subsonic](https://hub.docker.com/r/hurricane/subsonic).

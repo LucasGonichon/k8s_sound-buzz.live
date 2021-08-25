@@ -13,20 +13,27 @@ spec:
         app: subsonic
     spec:
       volumes:
-      - name: nfs
+      - name: subsonic
         persistentVolumeClaim:
           claimName: subsonic-pvc
+      - name: music
+        persistentVolumeClaim:
+          claimName: music-pvc
       containers:
       - name: subsonic
         image: hurricane/subsonic
         env:
          - name: HTTP_PORT
            value: "80"
+         - name: APP_UID
+           value: "65534"
         ports:
         - containerPort: 80
         volumeMounts:
-        - name: nfs
+        - name: subsonic
           mountPath: /subsonic
+        - name: music
+          mountPath: /music
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -39,6 +46,18 @@ spec:
   resources:
     requests:
       storage: 500Mi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: music-pvc
+spec:
+  storageClassName: nfs-client
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 50Gi
 ---
 apiVersion: v1
 kind: Service
