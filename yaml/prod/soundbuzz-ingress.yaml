@@ -18,13 +18,13 @@ spec:
   entryPoints:
     - web
   routes:
-    - match: Host(`nginx.example.com`)
+    - match: Host(`app.sound-buzz.live`)
       kind: Rule
       middlewares:
-        - name: nginx-redirect-scheme      
+        - name: soundbuzz-redirect-scheme      
       services:
         - name: subsonic-svc
-          port: 80
+          port: 443
 
 ---
 apiVersion: traefik.containo.us/v1alpha1

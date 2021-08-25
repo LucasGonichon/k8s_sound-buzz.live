@@ -213,7 +213,7 @@ additionalArguments:
   - --certificatesresolvers.pebble.acme.tlschallenge=true
   - --certificatesresolvers.pebble.acme.email=test@sound-buzz.live
   - --certificatesresolvers.pebble.acme.storage=/data/acme.json
-  - --certificatesresolvers.pebble.acme.caserver=https://pebble/dir
+  - --certificatesresolvers.pebble.acme.caserver=https://pebble.default/dir
 #  - "--providers.kubernetesingress.ingressclass=traefik-internal"
 #  - "--log.level=DEBUG"
 

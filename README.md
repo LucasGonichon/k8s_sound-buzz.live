@@ -415,3 +415,4 @@ On peut mettre en place une redirection automatique de http vers https en appliq
 Il ne reste plus qu'à mettre en place l'autoscaling de l'application en fonction de ses besoins en ressources face au nombre de requêtes.
 
 > EN COURS DE REDACTION
+
