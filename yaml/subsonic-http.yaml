@@ -25,15 +25,10 @@ spec:
         env:
          - name: HTTP_PORT
            value: "80"
-         - name: HTTPS_PORT
-           value: "443"
          - name: APP_UID
            value: "65534"
         ports:
         - containerPort: 80
-          name: http
-        - containerPort: 443
-          name: https
         volumeMounts:
         - name: subsonic
           mountPath: /subsonic
@@ -70,13 +65,21 @@ metadata:
   name: subsonic-svc
 spec:
   ports:
-  - name: http
-    port: 80
+  - port: 80
     protocol: TCP
-    targetPort: 80
-  - name: https
-    port: 443
-    protocol: TCP
-    targetPort: 443
   selector:
     app: subsonic
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: subsonic-ingress
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`app.sound-buzz.live`)
+      kind: Rule
+      services:
+        - name: subsonic-svc
+          port: 80

@@ -130,7 +130,7 @@ sudo chown $(id -u):$(id -g) $HOME/.kube/config
 ```
 Elles se trouvent aussi dans la sortie de la commande précédente, si elles sont différentes chez vous, adaptez cette étape.
 
-On doit maintenant installer un driver pour gérer le réseau au sein du cluster. On va utiliser flannel :
+On doit maintenant installer un driver pour gérer le réseau au sein du cluster. On va utiliser [flannel](https://github.com/flannel-io/flannel#flannel) :
 ```shell
 kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
 ```
@@ -336,9 +336,80 @@ On peut maintenant accéder à l'app subsonic depuis **app.subsonic.live**.
 > Côté backend, les données de l'app sont persistantes sur des volumes *nfs* auto-provisionnés.
 
 ## Utilisation de Let's Encrypt pour générer des certificats TLS
-Afin d'utiliser le protocole https pour accéder à notre application, il nous faut des certificats TLS pour notre domaine.
+Afin d'utiliser le protocole https pour accéder à notre application, il nous faut des certificats TLS pour notre domaine. Le soucis c'est que depuis notre environement fermé esxi, nous ne pouvons pas réaliser de challenge http/https ou dns. On va donc émuler let's encrypt avec un server ACME local : [Pebble](https://github.com/letsencrypt/pebble).
 
-> EN COURS DE REDACTION
+> En production, il faudra remplacer Pebble par Let's Encrypt et adapter la procédure en conséquence.
+
+Pour l'installation, nous allons utiliser Helm : [Pebble Helm Chart](https://github.com/jupyterhub/pebble-helm-chart).
+
+On va éditer les valeurs du manifeste avant le déploiement :
+```shell
+helm show values jupyterhub/pebble > pebble-values.yaml
+sudo nano pebble-values.yaml
+```
+Modifiez les parties **env:** **coredns:** :
+```yaml
+ env:
+  - name: PEBBLE_VA_ALWAYS_VALID
+    value: "1"
+
+ coredns:
+   enabled: false
+```
+> La configuration de **env** avec ```PEBBLE_VA_ALWAYS_TRUE=1``` permet d'ignorer la validation d'identité par Pebble. C'est plus simple pour une preuve de concept comme ici.
+> 
+> **coredns** est optionel, on le désactive par souci de simplicité.
+
+On déploie le serveur ACME dans le même *namespace* que Traefik par soucis de simplicité.
+```shell
+helm install pebble jupyterhub/pebble --values pebble-values.yaml -n traefik
+```
+
+On doit maintenant ajouter le certificat racine de Pebble à Traefik pour pouvoir effectuer un challenge https. On va pour cela utiliser la configMap mise à disposition par Pebble et mettre à jour les valeurs du manifeste **Helm** Traefik :
+```yaml
+volumes:
+  - name: pebble
+    mountPath: "/certs"
+    type: configMap
+
+#(...)
+
+additionalArguments:
+  - --certificatesresolvers.pebble.acme.tlschallenge=true
+  - --certificatesresolvers.pebble.acme.email=test@sound-buzz.live
+  - --certificatesresolvers.pebble.acme.storage=/data/acme.json
+  - --certificatesresolvers.pebble.acme.caserver=https://pebble/dir
+
+#(...)
+
+env:
+  - name: LEGO_CA_CERTIFICATES
+    value: "/certs/root-cert.pem"
+```
+
+On modifie notre ingress pour subsonic pour tester :
+```yaml
+entrypoints:
+  - websecure
+
+#(...)
+
+tls:
+  certResolver: pebble
+```
+On applique nos changements :
+```shell
+helm upgrade --install traefik traefik/traefik --values traefik-values.yaml -n traefik
+kubectl apply -f subsonic.yaml
+```
+
+On peut maintenant accéder à https://app.sound-buzz.live au lieu de http://sound-buzz.live.
+
+> En http, on a une erreur 404 : ingress ne prend plus en compte les requêtes http (plus de entrypoint *web* : remplacé par *websecure*).
+>
+> En https: il faut accepter le certificat dans le navigateur : celui-ci n'est pas délivré par une autorité fiable.
+
+On peut mettre en place une redirection automatique de http vers https en appliquant [redirect.yaml](yaml/redirect.yam).
 
 ## Mise à l'échelle automatique
 Il ne reste plus qu'à mettre en place l'autoscaling de l'application en fonction de ses besoins en ressources face au nombre de requêtes.
