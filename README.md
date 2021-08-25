@@ -157,7 +157,7 @@ On vérifie que tout fonctionne correctement avec ```kubectl get pods --all-name
 ### Nodes
 > Pensez à désactiver le *swap* !
 
-On peut maintenant ajouter les nodes au cluster. On va, pour chaque node, éxecuter la commande conservée précédemment. **Attention : la votre est différente de celle présentée en exemple ici, remplacez bien *xxx* par votre *hash*.**
+On peut maintenant ajouter les nodes au cluster. On va, pour chaque node, éxecuter la commande conservée précédemment. **Attention : la votre est différente de celle présentée en exemple ici, remplacez bien *xxx* par votre *hash* et modifiez le *token***
 ```shell
 sudo kubeadm join 172.16.0.150:6443 --token 61z7u0.owjzoqjtzvm3djov --discovery-token-ca-cert-hash sha256:xxx
 ```
