@@ -1,4 +1,4 @@
-# PROJET SOUND-BUZZ : Déploiement d'un application de streaming multimedia à l'aide de micro-services.
+# PROJET SOUND-BUZZ : Déploiement d'une application de streaming multimedia à l'aide de micro-services.
 
 > Qu'est ce que Kubernetes (k8s) ? Qu'est ce qu'un cluster ? Une node ? Un pod ? Les réponses ici : [Kubernetes Basics](https://kubernetes.io/docs/tutorials/kubernetes-basics/).
 
