@@ -414,10 +414,23 @@ kubectl apply -f <YAML_FILE>    # Pour créer/mettre à jour les éléments lié
 kubectl delete -f <YAML_FILE>   # Pour supprimer les éléments liés à la configuartion
 ```
 > Remplacez **<YAML_FILE>** par le fichier de configuration à appliquer. Ils sont conçus pour être déployés dans cet ordre (et donc *delete* dans l'ordre inverse):
+>
 > - [storage.yaml](yaml/sound-buzz.live/storage.yaml) va créer les **claims** sur les volumes que l'on désire persistants en créant des **persistant volume** liés au partage **nfs** (à l'aide de notre **provisioner**).
 > - [deployment.yaml](yaml/sound-buzz.live/deployment.yaml) va déployer l'application [subsonic](https://hub.docker.com/r/hurricane/subsonic) en utilisant nos volumes persistants.
-  > > Dans un environement **k8s**, les conteneurs ne conservent pas les données crées au cours de leur utilisation lorsqu'ils sont recyclés. On doit donc créer des volumes externes afin de stocker ces données. Cela peut se faire comem ici à l'aide de volumes **nfs** paratgés, mais aussi à l'aide de connexions à des bases de données par exemple.
+>
+> > Dans un environement **k8s**, les conteneurs ne conservent pas les données crées au cours de leur utilisation lorsqu'ils sont recyclés. On doit donc créer des volumes externes afin de stocker ces données. Cela peut se faire comem ici à l'aide de volumes **nfs** paratgés, mais aussi à l'aide de connexions à des bases de données par exemple.
+>
 > - [service.yaml](yaml/sound-buzz.live/service.yaml) va créer un service exposant tous les pods de notre déploiement à une unique addresse ip (et un unique port).
 > - [ingress.yaml](yaml/sound-buzz.live/ingress.yaml) va publier le service sur le web via une **ingressRoute**, redirigant au passage toutes les requêtes http vers https, et prenant en charge la gestion des certificats.
 
-Pour aller plus loin : **autoscaling** *(option disponible avec Traefik directement)*, **renouvellement automatique des certificats** *(également avec Traefik, de concert avec Pebble/Let's Encrypt)*
+Une fois les déffiérents éléments configurés et déployés, on peut observer le résultat :
+
+- Machines Hyper-V : ![hyperv-status.png](img/hyperv-status.PNG)
+- Etat du cluster : ```kubectl get all,pvc,ingressroute -o wide``` ![cluster-pods.png](img/cluster-pods.PNG)
+- Affichage de la page web : *http redirige vers https* ![website.png](img/website.PNG)
+
+  > On se connecte avec les identifiants *admin/admin*, on peut les changer une fois connecté à l'application. On peut ajouter des utilisateurs, de la musique ou des playlists directement depuis l'interface de l'application.
+
+- Interface de l'application : ![interface.png](img/interface.PNG)
+
+  > On peut ajouter des musiques depuis la section **More** du menu déroulant à gauche.
